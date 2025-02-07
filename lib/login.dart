@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kasir/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kasir/dashboard.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,7 +40,7 @@ class _LoginState extends State<Login> {
         // Login berhasil
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Dashboard()),
+          MaterialPageRoute(builder: (context) => dashboard()),
         );
       }
     } catch (error) {
@@ -87,7 +88,7 @@ class _LoginState extends State<Login> {
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 30, 0, 16),
-                  child: TextField(
+                  child: TextFormField(
                     controller: usernameController,
                     obscureText: false,
                     textAlign: TextAlign.start,
@@ -112,11 +113,16 @@ class _LoginState extends State<Login> {
                         color: Color.fromARGB(255, 47, 108, 133),
                       ),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return 'username tidak boleh kosong';
+                      return null;
+                    },
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
-                  child: TextField(
+                  child: TextFormField(
                     controller: passwordController,
                     obscureText: true,
                     textAlign: TextAlign.start,
@@ -140,7 +146,16 @@ class _LoginState extends State<Login> {
                         Icons.lock,
                         color: Color.fromARGB(255, 47, 108, 133),
                       ),
+                      suffixIcon: Icon(
+                        Icons.visibility,
+                        color: Color.fromARGB(255, 47, 108, 133),
+                      ),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return 'password tidak boleh kosong';
+                      return null;
+                    },
                   ),
                 ),
                 Padding(

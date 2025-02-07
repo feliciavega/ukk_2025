@@ -105,7 +105,7 @@ class registrasi extends StatelessWidget {
                     ),
                     Padding(
                       padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
-                      child: TextField(
+                      child: TextFormField(
                         controller: TextEditingController(),
                         obscureText: false,
                         textAlign: TextAlign.start,
@@ -132,7 +132,7 @@ class registrasi extends StatelessWidget {
                             borderSide:
                                 BorderSide(color: Color(0xffffffff), width: 1),
                           ),
-                          hintText: "Email",
+                          hintText: "Username",
                           hintStyle: TextStyle(
                             fontWeight: FontWeight.w400,
                             fontStyle: FontStyle.normal,
@@ -146,11 +146,16 @@ class registrasi extends StatelessWidget {
                           prefixIcon: Icon(Icons.mail,
                               color: Color(0xff487696), size: 24),
                         ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty)
+                            return 'username tidak boleh kosong';
+                          return null;
+                        },
                       ),
                     ),
                     Padding(
                       padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
-                      child: TextField(
+                      child: TextFormField(
                         controller: TextEditingController(),
                         obscureText: false,
                         textAlign: TextAlign.start,
@@ -191,6 +196,11 @@ class registrasi extends StatelessWidget {
                           prefixIcon: Icon(Icons.visibility_off,
                               color: Color(0xff396973), size: 24),
                         ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty)
+                            return 'password tidak boleh kosong';
+                          return null;
+                        },
                       ),
                     ),
                     Padding(
