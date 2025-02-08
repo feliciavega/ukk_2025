@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kasir/registrasi.dart';
+import 'package:kasir/pelanggan_page.dart';
+import 'package:kasir/penjualan_page.dart';
+import 'package:kasir/produk.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kasir/login.dart';
@@ -20,15 +22,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData(
-          textTheme: GoogleFonts.poppinsTextTheme(), // Menggunakan font Poppins
-        ),
-        debugShowCheckedModeBanner: false, // Menghilangkan banner debug
-        home:
-            Login(), // Halaman pertama yang akan ditampilkan saat aplikasi dibuka
-
-        routes: {
-          '/registrasi': (context) => registrasi(),
-        });
+      theme: ThemeData(
+        textTheme: GoogleFonts.poppinsTextTheme(), // Menggunakan font Poppins
+      ),
+      debugShowCheckedModeBanner: false, // Menghilangkan banner debug
+      home:
+          Login(), // Halaman pertama yang akan ditampilkan saat aplikasi dibuka
+      routes: {
+        '/pelanggan': (context) => PelangganPage(),
+        '/produk': (context) => ProdukPage(),
+        '/penjualan': (context) => PenjualanPage(),
+      },
+    );
   }
 }
