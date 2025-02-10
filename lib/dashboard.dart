@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kasir/pelanggan_page.dart';
 import 'package:kasir/penjualan_page.dart';
 import 'package:kasir/produk.dart';
+import 'package:kasir/profile_page.dart';
 import 'package:kasir/user_page.dart';
 
 class Dashboard extends StatelessWidget {
@@ -69,14 +70,12 @@ class Dashboard extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: ScrollPhysics(),
                   children: [
                     _buildDashboardItem(context, Icons.shopping_bag, "Produk"),
                     _buildDashboardItem(context, Icons.people, "Pelanggan"),
-                    _buildDashboardItem(
-                        context, Icons.shopping_cart, "Penjualan"),
-                    _buildDashboardItem(
-                        context, Icons.supervised_user_circle, "User"),
+                     _buildDashboardItem(context, Icons.shopping_cart, "Penjualan"),
+                    _buildDashboardItem( context, Icons.supervised_user_circle, "User"),
                   ],
                 ),
               ),
@@ -100,6 +99,8 @@ class Dashboard extends StatelessWidget {
           page = PelangganPage();
         } else if (label == "Penjualan") {
           page = PenjualanPage();
+        } else if (label == "Profil") {
+          page = ProfilePage();
         }
 
         if (page != null) {

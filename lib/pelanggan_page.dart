@@ -9,12 +9,17 @@ class PelangganPage extends StatefulWidget {
 class _PelangganPageState extends State<PelangganPage> {
   final SupabaseClient supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
+
+  // Controller untuk inputan
   final TextEditingController namaController = TextEditingController();
   final TextEditingController noTelpController = TextEditingController();
   final TextEditingController alamatController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
 
+// List untuk menyimpan data produk dari Supabase
   List<Map<String, dynamic>> pelanggan = [];
+  List<Map<String, dynamic>> pelangganList = [];
+  List<Map<String, dynamic>> filteredList = [];
   int? editingPelangganId;
 
   @override
@@ -31,10 +36,6 @@ class _PelangganPageState extends State<PelangganPage> {
     setState(() {
       pelanggan = response.map((e) => e as Map<String, dynamic>).toList();
     });
-  }
-
-  void searchPelanggan() {
-    fetchPelanggan(searchController.text.trim());
   }
 
   Future<void> addPelanggan() async {
@@ -144,6 +145,17 @@ class _PelangganPageState extends State<PelangganPage> {
       namaController.text = pelanggan['nama_pelanggan'];
       noTelpController.text = pelanggan['no_telp'];
       alamatController.text = pelanggan['alamat'];
+    });
+  }
+
+  // Fungsi untuk mencari produk berdasarkan nama
+  void searchPelanggan(String query) {
+    setState(() {
+      filteredList = pelangganList
+          .where((produk) => produk['nama_pelanggan']
+              .toLowerCase()
+              .contains(query.toLowerCase()))
+          .toList();
     });
   }
 

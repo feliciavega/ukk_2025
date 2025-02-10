@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:kasir/detail_penjualan_page.dart';
 
 class PenjualanPage extends StatefulWidget {
   @override
@@ -9,161 +8,92 @@ class PenjualanPage extends StatefulWidget {
 
 class _PenjualanPageState extends State<PenjualanPage> {
   final SupabaseClient supabase = Supabase.instance.client;
-  List<Map<String, dynamic>> transactions = [];
-  List<Map<String, dynamic>> filteredTransactions = [];
-  TextEditingController searchController = TextEditingController();
-  bool isLoading = true;
-  bool hasError = false;
+  List<Map<String, dynamic>> penjualanList = [];
 
   @override
   void initState() {
     super.initState();
-    fetchTransactions();
+    fetchPenjualan();
   }
 
-  Future<void> fetchTransactions() async {
-    setState(() {
-      isLoading = true;
-      hasError = false;
-    });
+  Future<void> fetchPenjualan() async {
+  final response = await supabase.from('penjualan').select();
+  print(response); // Tambahkan ini untuk melihat hasil query
+  setState(() {
+    penjualanList = response.map((e) => e as Map<String, dynamic>).toList();
+  print("Data yang disimpan di state: $penjualanList");
+});
+}
 
-    try {
-      final response = await supabase.from('penjualan').select(
-          'id_penjualan, tgl_penjualan, total, pelanggan(nama_pelanggan)');
 
-      setState(() {
-        transactions = response.map((e) => e as Map<String, dynamic>).toList();
-        filteredTransactions = transactions;
-        isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-        hasError = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Gagal mengambil data. Coba lagi."),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Daftar Penjualan")),
+      body: ListView.builder(
+        itemCount: penjualanList.length,
+        itemBuilder: (context, index) {
+          final penjualan = penjualanList[index];
+          return ListTile(
+            title: Text("ID: ${penjualan['id_penjualan']} - Total: Rp${penjualan['total']}",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text("Tanggal: ${penjualan['tgl_penjualan']}"),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailPenjualanPage(idPenjualan: penjualan['id_penjualan']),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DetailPenjualanPage extends StatefulWidget {
+  final int idPenjualan;
+  DetailPenjualanPage({required this.idPenjualan});
+
+  @override
+  _DetailPenjualanPageState createState() => _DetailPenjualanPageState();
+}
+
+class _DetailPenjualanPageState extends State<DetailPenjualanPage> {
+  final SupabaseClient supabase = Supabase.instance.client;
+  List<Map<String, dynamic>> detailPenjualanList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDetailPenjualan();
   }
 
-  void searchTransactions(String query) {
+  Future<void> fetchDetailPenjualan() async {
+    final response = await supabase
+        .from('detail_penjualan')
+        .select('*, produk(nama_produk)')
+        .eq('id_penjualan', widget.idPenjualan);
     setState(() {
-      filteredTransactions = transactions
-          .where((trx) => trx['pelanggan']['nama_pelanggan']
-              .toString()
-              .toLowerCase()
-              .contains(query.toLowerCase()))
-          .toList();
+      detailPenjualanList = response.map((e) => e as Map<String, dynamic>).toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Riwayat Penjualan")),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                labelText: "Cari pelanggan...",
-                suffixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onChanged: searchTransactions,
-            ),
-            SizedBox(height: 10),
-
-            // Tampilkan indikator loading
-            if (isLoading)
-              Center(child: CircularProgressIndicator())
-            else if (hasError)
-              Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.error, color: Colors.red, size: 50),
-                    SizedBox(height: 10),
-                    Text("Terjadi kesalahan saat memuat data"),
-                    ElevatedButton(
-                      onPressed: fetchTransactions,
-                      child: Text("Coba Lagi"),
-                    ),
-                  ],
-                ),
-              )
-            else if (filteredTransactions.isEmpty)
-              Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.receipt_long, size: 100, color: Colors.grey),
-                    SizedBox(height: 10),
-                    Text("Belum ada transaksi", style: TextStyle(fontSize: 16)),
-                  ],
-                ),
-              )
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredTransactions.length,
-                  itemBuilder: (context, index) {
-                    final trx = filteredTransactions[index];
-                    return Card(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 3,
-                      child: ListTile(
-                        contentPadding: EdgeInsets.all(16),
-                        title: Text(
-                          "Pelanggan: ${trx['pelanggan']['nama_pelanggan']}",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: 5),
-                            Text(
-                              "Total: Rp${trx['total']}",
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.green),
-                            ),
-                            SizedBox(height: 5),
-                            Text("Tanggal: ${trx['tgl_penjualan']}"),
-                          ],
-                        ),
-                        trailing: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DetailPenjualanPage(
-                                    idPenjualan: trx['id_penjualan']),
-                              ),
-                            );
-                          },
-                          child: Text("Lihat Detail"),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-          ],
-        ),
+      appBar: AppBar(title: Text("Detail Penjualan #${widget.idPenjualan}")),
+      body: ListView.builder(
+        itemCount: detailPenjualanList.length,
+        itemBuilder: (context, index) {
+          final detail = detailPenjualanList[index];
+          return ListTile(
+            title: Text("${detail['produk']['nama_produk']}"),
+            subtitle: Text("Jumlah: ${detail['jumlah_produk']} | Subtotal: Rp${detail['subtotal']}"),
+          );
+        },
       ),
     );
   }

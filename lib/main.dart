@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kasir/pelanggan_page.dart';
 import 'package:kasir/penjualan_page.dart';
 import 'package:kasir/produk.dart';
+import 'package:kasir/profile_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kasir/login.dart';
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
         '/pelanggan': (context) => PelangganPage(),
         '/produk': (context) => ProdukPage(),
         '/penjualan': (context) => PenjualanPage(),
+        '/profil': (context) => ProfilePage(),
       },
     );
   }

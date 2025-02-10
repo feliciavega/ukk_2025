@@ -76,10 +76,10 @@ class _LoginState extends State<Login> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.account_circle_rounded,
-                    size: 90, color: Color.fromARGB(255, 47, 108, 133)),
+                    size: 90, color: Color.fromARGB(255, 33, 74, 90)),
                 SizedBox(height: 8),
                 Text(
-                  "AYO LOGIN",
+                  "LOGIN",
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 22,

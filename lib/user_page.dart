@@ -87,11 +87,34 @@ class _UserPageState extends State<UserPage> {
     fetchUsers(); // Refresh daftar user
   }
 
-  // Fungsi untuk menghapus user berdasarkan ID
-  Future<void> deleteUser(int id) async {
-    await supabase.from('user').delete().eq('id', id);
+  Future<void> deleteUser(int Id) async {
+    await supabase.from('user').delete().eq('id', Id);
     showMessage("User berhasil dihapus");
-    fetchUsers(); // Refresh daftar user
+    fetchUsers();
+  }
+
+  // Fungsi untuk mengonfirmasi penghapusan user
+  void confirmDeleteUser(int id) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Konfirmasi Hapus"),
+        content: Text("Apakah Anda yakin ingin menghapus user ini?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Tutup dialog
+            child: Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Tutup dialog sebelum menghapus
+              deleteUser(id); // Panggil fungsi hapus user
+            },
+            child: Text("Hapus", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   // Fungsi untuk menampilkan pesan notifikasi
@@ -178,8 +201,7 @@ class _UserPageState extends State<UserPage> {
                   final user = users[index];
                   return ListTile(
                     title: Text(user['username']),
-                    subtitle: Text("ID: ${user['id']}",
-                        style: TextStyle(color: Colors.grey)),
+                  
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -189,7 +211,7 @@ class _UserPageState extends State<UserPage> {
                         ),
                         IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => deleteUser(user['id']),
+                          onPressed: () => confirmDeleteUser(user['id']),
                         ),
                       ],
                     ),
