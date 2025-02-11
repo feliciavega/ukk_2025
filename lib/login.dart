@@ -83,7 +83,7 @@ class _LoginState extends State<Login> {
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 22,
-                    color: Color.fromARGB(255, 34, 124, 167),
+                    color: Color.fromARGB(255, 25, 93, 124),
                   ),
                 ),
                 SizedBox(height: 30),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:kasir/dashboard.dart';
+import 'package:kasir/detail_penjualan_page.dart';
 import 'package:kasir/pelanggan_page.dart';
 import 'package:kasir/penjualan_page.dart';
-import 'package:kasir/produk.dart';
+import 'package:kasir/produk_page.dart';
 import 'package:kasir/profile_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,7 +18,6 @@ Future<void> main() async {
   runApp(MyApp());
 }
 
-// Kelas utama aplikasi yang merupakan StatelessWidget
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -24,16 +25,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        textTheme: GoogleFonts.poppinsTextTheme(), // Menggunakan font Poppins
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      debugShowCheckedModeBanner: false, // Menghilangkan banner debug
-      home:
-          Login(), // Halaman pertama yang akan ditampilkan saat aplikasi dibuka
+      debugShowCheckedModeBanner: false,
+      home: Login(),
       routes: {
         '/pelanggan': (context) => PelangganPage(),
         '/produk': (context) => ProdukPage(),
         '/penjualan': (context) => PenjualanPage(),
         '/profil': (context) => ProfilePage(),
+        '/dashboard': (context) => Dashboard(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/detail-penjualan') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => DetailPenjualanPage(idPenjualan: args['idPenjualan']),
+          );
+        }
+        return null;
       },
     );
   }

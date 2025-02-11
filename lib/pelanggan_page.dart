@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PelangganPage extends StatefulWidget {
   @override
@@ -20,6 +21,8 @@ class _PelangganPageState extends State<PelangganPage> {
   List<Map<String, dynamic>> pelanggan = [];
   List<Map<String, dynamic>> pelangganList = [];
   List<Map<String, dynamic>> filteredList = [];
+  List<Map<String, dynamic>> daftarPelanggan = [];
+
   int? editingPelangganId;
 
   @override
@@ -63,35 +66,111 @@ class _PelangganPageState extends State<PelangganPage> {
     fetchPelanggan();
   }
 
-  Future<void> updatePelanggan() async {
-    if (!_formKey.currentState!.validate() || editingPelangganId == null)
-      return;
+Future<void> _editPelanggan(BuildContext context, Map<String, dynamic> pelanggan) async {
+  final _formKey = GlobalKey<FormState>();
 
-    final nama = namaController.text.trim();
-    final noTelp = noTelpController.text.trim();
-    final alamat = alamatController.text.trim();
+  // Isi controller dengan nilai lama agar tidak NULL
+  TextEditingController nameController = TextEditingController(text: pelanggan['nama_pelanggan']);
+  TextEditingController phoneController = TextEditingController(text: pelanggan['no_telp']);
+  TextEditingController addressController = TextEditingController(text: pelanggan['alamat']);
 
-    final existingPelanggan = await supabase
-        .from('pelanggan')
-        .select()
-        .eq('no_telp', noTelp)
-        .neq('id_pelanggan', editingPelangganId as Object);
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Edit Pelanggan', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Nama Pelanggan',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Nama pelanggan tidak boleh kosong';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'No Telepon',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Nomor telepon tidak boleh kosong';
+                  if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Masukkan nomor telepon yang valid';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: addressController,
+                decoration: InputDecoration(
+                  labelText: 'Alamat',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Alamat tidak boleh kosong';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            child: Text('Batal', style: GoogleFonts.poppins(color: Colors.white)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (_formKey.currentState!.validate()) {
+                final name = nameController.text.isNotEmpty ? nameController.text : pelanggan['nama_pelanggan'];
+                final phone = phoneController.text.isNotEmpty ? phoneController.text : pelanggan['no_telp'];
+                final address = addressController.text.isNotEmpty ? addressController.text : pelanggan['alamat'];
 
-    if (existingPelanggan.isNotEmpty) {
-      showMessage("Nomor telepon sudah terdaftar", isError: true);
-      return;
-    }
+                try {
+                  await Supabase.instance.client.from('pelanggan').update({
+                    'nama_pelanggan': name,
+                    'no_telp': phone,
+                    'alamat': address,
+                  }).match({'id_pelanggan': pelanggan['id_pelanggan']});
 
-    await supabase.from('pelanggan').update({
-      'nama_pelanggan': nama,
-      'no_telp': noTelp,
-      'alamat': alamat,
-    }).eq('id_pelanggan', editingPelangganId as Object);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Pelanggan berhasil diperbarui'))
+                  );
 
-    showMessage("Pelanggan berhasil diperbarui");
-    clearForm();
-    fetchPelanggan();
-  }
+                  fetchPelanggan(); // Refresh daftar pelanggan setelah update
+                  Navigator.pop(context);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Kesalahan: $e'))
+                  );
+                }
+              }
+            },
+            child: Text('Simpan', style: GoogleFonts.poppins()),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
 
   //alert hapus
   void showDeleteConfirmation(BuildContext context, int pelangganId) {
@@ -216,24 +295,24 @@ class _PelangganPageState extends State<PelangganPage> {
               ),
             ),
             SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: editingPelangganId == null
-                      ? addPelanggan
-                      : updatePelanggan,
-                  child: Text(editingPelangganId == null
-                      ? "Tambah Pelanggan"
-                      : "Update Pelanggan"),
-                ),
-                if (editingPelangganId != null)
-                  ElevatedButton(
-                    onPressed: clearForm,
-                    child: Text("Batal"),
-                  ),
-              ],
-            ),
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    ElevatedButton(
+      onPressed: () {
+        if (editingPelangganId == null) {
+          addPelanggan(); // Fungsi untuk menambah pelanggan baru
+        } else {
+          // Ambil data pelanggan berdasarkan ID yang sedang diedit
+          final pelanggan = daftarPelanggan.firstWhere((p) => p['id_pelanggan'] == editingPelangganId);
+          _editPelanggan(context, pelanggan); // Panggil fungsi edit pelanggan
+        }
+      },
+      child: Text(editingPelangganId == null ? "Tambah Pelanggan" : "Update Pelanggan"),
+    ),
+  ],
+),
+
             Expanded(
               child: ListView.builder(
                 itemCount: pelanggan.length,
@@ -248,7 +327,7 @@ class _PelangganPageState extends State<PelangganPage> {
                         IconButton(
                             icon: Icon(Icons.edit,
                                 color: const Color.fromARGB(255, 31, 89, 136)),
-                            onPressed: () => startEditing(p)),
+                            onPressed: () => _editPelanggan(context, p)),
                         IconButton(
                           icon: Icon(Icons.delete,
                               color: const Color.fromARGB(255, 163, 29, 19)),

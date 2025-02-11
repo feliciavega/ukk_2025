@@ -1,99 +1,141 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class PenjualanPage extends StatefulWidget {
+class CheckoutPage extends StatefulWidget {
   @override
-  _PenjualanPageState createState() => _PenjualanPageState();
+  _CheckoutPageState createState() => _CheckoutPageState();
 }
 
-class _PenjualanPageState extends State<PenjualanPage> {
+class _CheckoutPageState extends State<CheckoutPage> {
   final SupabaseClient supabase = Supabase.instance.client;
-  List<Map<String, dynamic>> penjualanList = [];
+  List<Map<String, dynamic>> cartItems = [];
+  double totalHarga = 0;
 
   @override
   void initState() {
     super.initState();
-    fetchPenjualan();
+    fetchCartItems();
   }
 
-  Future<void> fetchPenjualan() async {
-  final response = await supabase.from('penjualan').select();
-  print(response); // Tambahkan ini untuk melihat hasil query
-  setState(() {
-    penjualanList = response.map((e) => e as Map<String, dynamic>).toList();
-  print("Data yang disimpan di state: $penjualanList");
-});
-}
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Daftar Penjualan")),
-      body: ListView.builder(
-        itemCount: penjualanList.length,
-        itemBuilder: (context, index) {
-          final penjualan = penjualanList[index];
-          return ListTile(
-            title: Text("ID: ${penjualan['id_penjualan']} - Total: Rp${penjualan['total']}",
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text("Tanggal: ${penjualan['tgl_penjualan']}"),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DetailPenjualanPage(idPenjualan: penjualan['id_penjualan']),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class DetailPenjualanPage extends StatefulWidget {
-  final int idPenjualan;
-  DetailPenjualanPage({required this.idPenjualan});
-
-  @override
-  _DetailPenjualanPageState createState() => _DetailPenjualanPageState();
-}
-
-class _DetailPenjualanPageState extends State<DetailPenjualanPage> {
-  final SupabaseClient supabase = Supabase.instance.client;
-  List<Map<String, dynamic>> detailPenjualanList = [];
-
-  @override
-  void initState() {
-    super.initState();
-    fetchDetailPenjualan();
-  }
-
-  Future<void> fetchDetailPenjualan() async {
-    final response = await supabase
-        .from('detail_penjualan')
-        .select('*, produk(nama_produk)')
-        .eq('id_penjualan', widget.idPenjualan);
+  void fetchCartItems() {
+    // Contoh data sementara (seharusnya dari state sebelumnya)
     setState(() {
-      detailPenjualanList = response.map((e) => e as Map<String, dynamic>).toList();
+      cartItems = [
+        {'id_produk': 1, 'nama_produk': 'Donat Coklat', 'harga': 5000, 'jumlah': 2},
+        {'id_produk': 2, 'nama_produk': 'Donat Keju', 'harga': 6000, 'jumlah': 1},
+      ];
+      calculateTotal();
     });
   }
 
+  void calculateTotal() {
+    totalHarga = cartItems.fold(0, (sum, item) => sum + (item['harga'] * item['jumlah']));
+  }
+
+  void updateJumlah(int index, int newJumlah) {
+    if (newJumlah > 0) {
+      setState(() {
+        cartItems[index]['jumlah'] = newJumlah;
+        calculateTotal();
+      });
+    }
+  }
+
+  Future<void> checkout() async {
+    try {
+      final response = await supabase.from('pelanggan').select().limit(1);
+      if (response.isEmpty) {
+        showMessage("Tidak ada pelanggan terdaftar!", isError: true);
+        return;
+      }
+
+      final idPelanggan = response.first['id_pelanggan'];
+      final transaksiResponse = await supabase.from('penjualan').insert({
+        'tgl_penjualan': DateTime.now().toIso8601String(),
+        'total': totalHarga,
+        'id_pelanggan': idPelanggan,
+      }).select().single();
+
+      if (transaksiResponse == null) {
+        showMessage("Gagal melakukan checkout", isError: true);
+        return;
+      }
+
+      final idPenjualan = transaksiResponse['id_penjualan'];
+      for (var item in cartItems) {
+        await supabase.from('detail_penjualan').insert({
+          'id_penjualan': idPenjualan,
+          'id_produk': item['id_produk'],
+          'jumlah_produk': item['jumlah'],
+          'subtotal': item['harga'] * item['jumlah'],
+        });
+      }
+
+      showMessage("Checkout berhasil!");
+      Navigator.pop(context);
+    } catch (error) {
+      showMessage("Terjadi kesalahan saat checkout!", isError: true);
+    }
+  }
+
+  void showMessage(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Detail Penjualan #${widget.idPenjualan}")),
-      body: ListView.builder(
-        itemCount: detailPenjualanList.length,
-        itemBuilder: (context, index) {
-          final detail = detailPenjualanList[index];
-          return ListTile(
-            title: Text("${detail['produk']['nama_produk']}"),
-            subtitle: Text("Jumlah: ${detail['jumlah_produk']} | Subtotal: Rp${detail['subtotal']}"),
-          );
-        },
+      appBar: AppBar(title: Text("Checkout")),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: cartItems.length,
+              itemBuilder: (context, index) {
+                final item = cartItems[index];
+                return Card(
+                  margin: EdgeInsets.all(8),
+                  child: ListTile(
+                    title: Text(item['nama_produk']),
+                    subtitle: Text("Harga: Rp${item['harga']}"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.remove),
+                          onPressed: () => updateJumlah(index, item['jumlah'] - 1),
+                        ),
+                        Text("${item['jumlah']}"),
+                        IconButton(
+                          icon: Icon(Icons.add),
+                          onPressed: () => updateJumlah(index, item['jumlah'] + 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Text("Total: Rp$totalHarga", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: checkout,
+                  child: Text("Konfirmasi Checkout"),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
