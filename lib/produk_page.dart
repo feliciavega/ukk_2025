@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kasir/penjualan_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -242,9 +241,6 @@ class _ProdukPageState extends State<ProdukPage> {
           .toList();
     });
   }
-
-
-
 
 // Future<void> beliProduk(BuildContext context, Map<String, dynamic> produk, int jumlah) async {
 //   if (jumlah <= 0 || jumlah > produk['stok']) {

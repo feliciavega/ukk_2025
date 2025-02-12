@@ -5,6 +5,7 @@ import 'package:kasir/pelanggan_page.dart';
 import 'package:kasir/penjualan_page.dart';
 import 'package:kasir/produk_page.dart';
 import 'package:kasir/profile_page.dart';
+import 'package:kasir/riwayat_penjualan_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kasir/login.dart';
@@ -35,13 +36,22 @@ class MyApp extends StatelessWidget {
         '/penjualan': (context) => PenjualanPage(),
         '/profil': (context) => ProfilePage(),
         '/dashboard': (context) => Dashboard(),
+        '/riwayat-penjualan': (context) => RiwayatPenjualanPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/detail-penjualan') {
-          final args = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (context) => DetailPenjualanPage(idPenjualan: args['idPenjualan']),
-          );
+          final args = settings.arguments as Map<String, dynamic>?;
+          if (args != null && args.containsKey('idPenjualan')) {
+            return MaterialPageRoute(
+              builder: (context) => DetailPenjualanPage(idPenjualan: args['idPenjualan']),
+            );
+          } else {
+            return MaterialPageRoute(
+              builder: (context) => Scaffold(
+                body: Center(child: Text("ID Penjualan tidak ditemukan")),
+              ),
+            );
+          }
         }
         return null;
       },

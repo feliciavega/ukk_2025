@@ -58,9 +58,9 @@ class _ProfilePageState extends State<ProfilePage> {
           style: GoogleFonts.poppins(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 36, 96, 131),
+        backgroundColor: Color.fromARGB(255, 35, 67, 117),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back,  color: Colors.white),
           onPressed: () {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);

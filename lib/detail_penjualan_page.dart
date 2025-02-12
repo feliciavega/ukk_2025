@@ -24,10 +24,9 @@ class _DetailPenjualanPageState extends State<DetailPenjualanPage> {
   Future<void> fetchDetails() async {
     final response = await supabase
         .from('detail_penjualan')
-        .select('id_detail, jumlah_produk, subtotal, produk(nama_produk)')
+        .select('jumlah_produk, subtotal, produk(nama_produk)')
         .eq('id_penjualan', widget.idPenjualan);
 
-    print("Response Detail Penjualan: $response");
     setState(() {
       details = response.map((e) => e as Map<String, dynamic>).toList();
       filteredDetails = List.from(details);
@@ -45,46 +44,47 @@ class _DetailPenjualanPageState extends State<DetailPenjualanPage> {
     });
   }
 
-  Future<void> deleteDetail(int idDetail) async {
-  try {
-    await supabase.from('detail_penjualan').delete().eq('id_detail', idDetail);
-    fetchDetails(); // Pastikan fungsi ini ada untuk memperbarui tampilan
-  } catch (error) {
-    print("Error menghapus detail penjualan: $error");
+  Future<void> deleteDetail(int index) async {
+    try {
+      await supabase.from('detail_penjualan').delete().eq('id_detail', details[index]['id_detail']);
+      fetchDetails();
+    } catch (error) {
+      print("Error menghapus detail penjualan: $error");
+    }
   }
-}
 
-void deleteDetailPenjualan(BuildContext context, int detailId) {
-  print("ID detail penjualan yang akan dihapus: $detailId"); // Debugging
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Konfirmasi Hapus"),
-        content: Text("Apakah Anda yakin ingin menghapus detail penjualan ini?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Batal"),
-          ),
-          TextButton(
-            onPressed: () async { // Tambahkan async di sini
-              print("Menghapus detail penjualan dengan ID: $detailId"); // Debugging
-              await deleteDetail(detailId); // Tambahkan await agar selesai dulu
-              Navigator.pop(context);
-            },
-            child: Text("Hapus", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      );
-    },
-  );
-}
+  void deleteDetailPenjualan(BuildContext context, int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Konfirmasi Hapus", style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Text("Apakah Anda yakin ingin menghapus detail penjualan ini?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Batal", style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () async {
+                await deleteDetail(index);
+                Navigator.pop(context);
+              },
+              child: Text("Hapus", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Detail Penjualan #${widget.idPenjualan}")),
+      appBar: AppBar(
+        title: Text("Detail Penjualan", style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -93,7 +93,8 @@ void deleteDetailPenjualan(BuildContext context, int detailId) {
               controller: searchController,
               decoration: InputDecoration(
                 labelText: "Cari produk...",
-                suffixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                prefixIcon: Icon(Icons.search),
               ),
               onChanged: searchDetails,
             ),
@@ -103,21 +104,27 @@ void deleteDetailPenjualan(BuildContext context, int detailId) {
                 itemCount: filteredDetails.length,
                 itemBuilder: (context, index) {
                   final detail = filteredDetails[index];
-                  return ListTile(
-                    title: Text(detail['produk']['nama_produk'] ?? "Produk Tidak Diketahui"),
-                    subtitle: Text("Jumlah: ${detail['jumlah_produk']}",
-                        style: TextStyle(color: Colors.grey[600])),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text("Rp${detail['subtotal']}",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => deleteDetailPenjualan(context, detail['id_detail']),
-
-                        ),
-                      ],
+                  return Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    margin: EdgeInsets.symmetric(vertical: 5),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(16),
+                      title: Text(detail['produk']['nama_produk'] ?? "Produk Tidak Diketahui",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      subtitle: Text("Jumlah: ${detail['jumlah_produk']}",
+                          style: TextStyle(color: Colors.grey[700], fontSize: 14)),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text("Rp${detail['subtotal']}",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          SizedBox(width: 10),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => deleteDetailPenjualan(context, index),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },

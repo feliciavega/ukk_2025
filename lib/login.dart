@@ -79,7 +79,7 @@ class _LoginState extends State<Login> {
                     size: 90, color: Color.fromARGB(255, 33, 74, 90)),
                 SizedBox(height: 8),
                 Text(
-                  "LOGIN",
+                  "TOKO FELICIA",
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 22,

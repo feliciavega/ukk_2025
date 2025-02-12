@@ -76,7 +76,7 @@ class HomePage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      "DASH",
+                      "TOKO",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
                         fontSize: 22,
@@ -84,7 +84,7 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "BOARD",
+                      "FELICIA",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
                         fontSize: 22,
